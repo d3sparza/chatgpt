@@ -1,0 +1,21 @@
+/**
+ * Agregar un botón en los productos de mi tienda para compartir por WhatsApp.
+ *
+ * @author	d3sparza.
+ * @link	https://danielesparza.studio/
+ * 
+*/
+
+//Hook de WooCommerce para mostrar los productos despues del meta.
+add_action('woocommerce_product_meta_end', 'add_whatsapp_share_button');
+
+function add_whatsapp_share_button() {
+    //Obteniendo la información de los productos 
+    global $product;
+    
+    //Creando el enlace de WhatsApp
+    $whatsapp_link = 'https://wa.me/?text=' . urlencode("¡Mira este producto que encontré en mi tienda online! " . $product->get_name() . " - $" . $product->get_price() . " - " . get_home_url() . "/producto/" . $product->get_id());
+    
+    //Imprimiendo el botón
+    echo '<a href="' . $whatsapp_link . '" target="_blank"><i class="fab fa-whatsapp"></i> Compartir en WhatsApp</a>';
+}
