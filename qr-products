@@ -1,0 +1,26 @@
+/**
+ * Agrega un código QR al final de la sección de metadatos de los productos de WooCommerce.
+ *
+ * @author	d3sparza.
+ * @link	https://danielesparza.studio/
+ * 
+*/
+
+
+//Hook de WooCommerce para mostrar los productos despues del meta.
+add_action( 'woocommerce_product_meta_end', 'agregar_codigo_qr_a_producto' );
+
+function agregar_codigo_qr_a_producto() {
+
+    //Obteniendo la información de los productos 
+    global $product;
+    
+    //Creando el enlace del producto
+    $url_producto = get_permalink( $product->get_id() );
+    
+    //Utilizando la API para crear el código QR
+    $url_qr = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode( $url_producto );
+    
+    //Imprimiendo la imagen
+    echo '<img src="' . $url_qr . '" alt="Código QR para ' . $product->get_name() . '">';
+}
