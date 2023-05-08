@@ -1,0 +1,66 @@
+/**
+ * Crear un carrusel de productos para WooCommerce con OWLCarousel.
+ *
+ * @author	d3sparza.
+ * @link	https://danielesparza.studio/
+ * 
+*/
+
+//Agregando los CDN de OwlCarousel2
+function agregar_owlcarousel() {
+    wp_enqueue_script( 'owlcarousel', 'https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js', array( 'jquery' ), '2.3.4', true );
+    wp_enqueue_style( 'owlcarousel-style', 'https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css', array(), '2.3.4' );
+}
+add_action( 'wp_enqueue_scripts', 'agregar_owlcarousel' );
+
+//Creando la función para el shortcode
+function carrusel_productos() {
+
+    $args = array(
+        'post_type' => 'product',
+        'posts_per_page' => 8,
+    );
+    
+    $loop = new WP_Query( $args );
+    if ( $loop->have_posts() ) :
+        $output = '<div class="owl-carousel">';
+        while ( $loop->have_posts() ) : $loop->the_post();
+            global $product;
+            $output .= '<div class="product">';
+            $output .= '<a href="' . esc_url( get_permalink() ) . '">';
+            $output .= '<h2>' . get_the_title() . '</h2>';
+            $output .= '<img src="' . esc_url( get_the_post_thumbnail_url() ) . '" alt="' . esc_attr( get_the_title() ) . '">';
+            $output .= '</a>';
+            $output .= '</div>';
+        endwhile;
+        $output .= '</div>';
+        $output .= '<script type="text/javascript">
+                        jQuery(document).ready(function($) {
+                            $(".owl-carousel").owlCarousel({
+                                loop:true,
+                                margin:10,
+                                nav:true,
+                                responsive:{
+                                    0:{
+                                        items:1
+                                    },
+                                    600:{
+                                        items:3
+                                    },
+                                    1000:{
+                                        items:5
+                                    }
+                                }
+                            });
+                        });
+                    </script>';
+    endif;
+    wp_reset_postdata();
+    return $output;
+}
+add_shortcode( 'carrusel', 'carrusel_productos' );
+
+//Shortcode [carrusel]
+
+
+
