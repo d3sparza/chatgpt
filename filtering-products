@@ -1,0 +1,126 @@
+/**
+ * Crear un filtro para mostrar los productos de la tienda utilizando un shortcode y Ajax
+ *
+ * @author	d3sparza.
+ * @link	https://danielesparza.studio/
+ * 
+*/
+
+// Register shortcode
+// Shortcode [productos_woocomerce]
+
+//Código para mostrar los productos (shortcode)
+function mostrar_productos_woocommerce($atts) {
+    $atributos = shortcode_atts(array(
+        'cantidad' => 5,
+    ), $atts);
+
+    $args = array(
+        'post_type' => 'product',
+        'posts_per_page' => $atributos['cantidad'],
+    );
+
+    $productos = new WP_Query($args);
+
+    ob_start();
+    ?>
+    <div class="productos-woocommerce">
+        <div class="filtro-categoria">
+            <label for="categoria">Categoría:</label>
+            <select id="categoria">
+                <option value="">Todas las categorías</option>
+                <?php
+                $categorias = get_terms('product_cat');
+                foreach ($categorias as $categoria) {
+                    echo '<option value="' . $categoria->slug . '">' . $categoria->name . '</option>';
+                }
+                ?>
+            </select>
+        </div>
+        <ul id="productos-lista">
+            <?php
+            if ($productos->have_posts()) {
+                while ($productos->have_posts()) {
+                    $productos->the_post();
+                    global $product;
+
+                    echo '<li>';
+                    echo '<a href="' . get_permalink() . '">';
+                    echo '<img src="' . get_the_post_thumbnail_url($product->get_id(), 'thumbnail') . '" alt="' . get_the_title() . '" />';
+                    echo '<h3>' . get_the_title() . '</h3>';
+                    echo '<p>' . $product->get_short_description() . '</p>';
+                    echo '</a>';
+                    echo '</li>';
+                }
+            } else {
+                echo '<li>No se encontraron productos.</li>';
+            }
+            ?>
+        </ul>
+    </div>
+    
+    //Ejecutar el Ajax
+    <script>
+        jQuery(document).ready(function($) {
+            $("#categoria").change(function() {
+                var categoria = $(this).val();
+
+                $.ajax({
+                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                    type: 'POST',
+                    data: {
+                        action: 'filtrar_productos',
+                        categoria: categoria
+                    },
+                    success: function(response) {
+                        $("#productos-lista").html(response);
+                    }
+                });
+            });
+        });
+    </script>
+    <?php
+    $output = ob_get_clean();
+    return $output;
+}
+add_shortcode('productos_woocomerce', 'mostrar_productos_woocommerce');
+
+//Código para filtrtar los productos con ajax
+function filtrar_productos_ajax() {
+    $categoria = $_POST['categoria'];
+
+    $args = array(
+        'post_type' => 'product',
+        'posts_per_page' => -1,
+        'product_cat' => $categoria,
+    );
+
+    $productos = new WP_Query($args);
+
+    ob_start();
+
+    if ($productos->have_posts()) {
+        while ($productos->have_posts()) {
+            $productos->the_post();
+            global $product;
+
+            echo '<li>';
+            echo '<a href="' . get_permalink() . '">';
+            echo '<img src="' . get_the_post_thumbnail_url($product->get_id(), 'thumbnail') . '" alt="' . get_the_title() . '" />';
+            echo '<h3>' . get_the_title() . '</h3>';
+            echo '<p>' . $product->get_short_description() . '</p>';
+            echo '</a>';
+            echo '</li>';
+        }
+    } else {
+        echo '<li>No se encontraron productos.</li>';
+    }
+
+    wp_reset_postdata();
+
+    $output = ob_get_clean();
+    echo $output;
+    die();
+}
+add_action('wp_ajax_filtrar_productos', 'filtrar_productos_ajax');
+add_action('wp_ajax_nopriv_filtrar_productos', 'filtrar_productos_ajax');
